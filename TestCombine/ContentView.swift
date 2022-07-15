@@ -12,9 +12,6 @@ enum SimpleError: Error { case error }
 
 struct ContentView: View {
     
-    @State private var futureValue = ""
-    @State private var futureState = ""
-
     @State private var justValue = ""
     @State private var justState = ""
     
@@ -32,131 +29,165 @@ struct ContentView: View {
     
     @State private var tryCatchValue = ""
     @State private var tryCatchState = ""
+    
+    @State private var sendValue = 1
+    @State private var currentSubjectValue = 0
+    @State private var currentSubjectState = ""
+    
+    @State private var sendValue2 = 1
+    @State private var passThroughValue = 0
+    @State private var passThroughState = ""
+    
+    @State private var subjectZipValue = ""
+    @State private var subjectZipState = ""
 
     
     var body: some View {
-        
         List{
             
-            VStack{
-                
-                HStack{
-                    Text("하나의 이벤트 발생 후 종료")
-                    Spacer()
+            Section(header: Text("Publishers")) {
+                VStack{
+                    HStack{
+                        Text("하나의 이벤트 발생 후 종료")
+                        Spacer()
+                    }
+                    
+                    HStack{
+                        Button("Just"){ callJust() }.padding(.trailing, 5)
+                        Text("Value : \(justValue)").padding(.trailing, 5)
+                        Text("State : \(justState)").padding(.trailing, 5)
+                        Spacer()
+                    }
                 }
-                HStack{
-                    Button("Future"){ callFuture() }.padding(.trailing, 5)
-                    Text("Value : \(futureValue)").padding(.trailing, 5)
-                    Text("Sate : \(futureState)").padding(.trailing, 5)
+            
+            
+            
+                VStack{
+                    
+                    HStack{
+                        Text("array -> publisher 변환 - array 원소 방출 후 종료")
+                        Spacer()
+                    }
+                    
+                    HStack{
+                        Button(".publisher"){ asPublisher() }.padding(.trailing, 5)
+                        Text("Value : \(publisherValue)").padding(.trailing, 5)
+                        Text("State : \(publisherState)").padding(.trailing, 5)
+                        Spacer()
+                    }
+                
                     Spacer()
+                }.padding(.leading, 10)
+                
+                VStack{
+                    HStack{
+                        Text("flatMap - 문자 Publi를 정수 Publi로")
+                        Spacer()
+                    }
+                    
+                    HStack{
+                        Button("flatMap"){ callFlatMap() }.padding(.trailing, 5)
+                        Text("Value : \(flatMapValue)").padding(.trailing, 5)
+                        Text("State : \(flatMapState)").padding(.trailing, 5)
+                        Spacer()
+                    }
+                }
+                
+                VStack{
+                    HStack{
+                        Text("Rx의 take와 동일")
+                        Spacer()
+                    }
+                    
+                    HStack{
+                        Button("prefix"){ callPrefix() }.padding(.trailing, 5)
+                        Text("Value : \(prefixValue)").padding(.trailing, 5)
+                        Text("State : \(prefixState)").padding(.trailing, 5)
+                        Spacer()
+                    }
+                }
+                
+                VStack{
+                    HStack{
+                        Text("Rx의 zip")
+                        Spacer()
+                    }
+                    
+                    HStack{
+                        Button("zip"){ callZip() }.padding(.trailing, 5)
+                        Text("Value : \(zipValue)").padding(.trailing, 5)
+                        Text("State : \(zipState)").padding(.trailing, 5)
+                        Spacer()
+                    }
+                }
+                
+                
+                VStack{
+                    HStack{
+                        Text("Rx의 onErrorReturn")
+                        Spacer()
+                    }
+                    
+                    HStack{
+                        Button("tryCatch"){ callTryCatch() }.padding(.trailing, 5)
+                        Text("Value : \(tryCatchValue)").padding(.trailing, 5)
+                        Text("State : \(tryCatchState)").padding(.trailing, 5)
+                        Spacer()
+                    }
+                }
+                    
+            }
+            
+            Section(header: Text("Subjects")) {
+                
+                VStack{
+                    HStack{
+                        Text("Rx의 BehaviorSubject")
+                        Spacer()
+                    }
+                    
+                    HStack{
+                        Button("CurrentValueSubject send(\(sendValue))"){ callCurrentValueSubject() }.padding(.trailing, 5)
+                        Text("Subscription : \(currentSubjectValue)").padding(.trailing, 5)
+                        Text("State : \(currentSubjectState)").padding(.trailing, 5)
+                        Spacer()
+                    }
+                }
+                
+                VStack{
+                    HStack{
+                        Text("Rx의 PublishSubject")
+                        Spacer()
+                    }
+                    
+                    HStack{
+                        Button("PassThroughSubject send(\(sendValue2))"){ callPassThroughSubject() }.padding(.trailing, 5)
+                        Text("Subscription : \(passThroughValue)").padding(.trailing, 5)
+                        Text("State : \(passThroughState)").padding(.trailing, 5)
+                        Spacer()
+                    }
+                }
+                
+                VStack{
+                    HStack{
+                        Text("Rx의 두개의 Subject zip")
+                        Spacer()
+                    }
+                    
+                    HStack{
+                        Button("Subject zip(int subejct, str subject)"){ callSubjectZip() }.padding(.trailing, 5)
+                        Text("Subscription : \(subjectZipValue)").padding(.trailing, 5)
+                        Text("State : \(subjectZipState)").padding(.trailing, 5)
+                        Spacer()
+                    }
                 }
                 
             }
-            
-            VStack{
-                HStack{
-                    Text("하나의 이벤트 발생 후 종료")
-                    Spacer()
-                }
-                
-                HStack{
-                    Button("Just"){ callJust() }.padding(.trailing, 5)
-                    Text("Value : \(justValue)").padding(.trailing, 5)
-                    Text("Sate : \(justState)").padding(.trailing, 5)
-                    Spacer()
-                }
-            }
-            
-            
-            
-            VStack{
-                
-                HStack{
-                    Text("array -> publisher 변환 - array 원소 방출 후 종료")
-                    Spacer()
-                }
-                
-                HStack{
-                    Button(".publisher"){ asPublisher() }.padding(.trailing, 5)
-                    Text("Value : \(publisherValue)").padding(.trailing, 5)
-                    Text("Sate : \(publisherState)").padding(.trailing, 5)
-                    Spacer()
-                }
-            
-                Spacer()
-            }.padding(.leading, 10)
-            
-            VStack{
-                HStack{
-                    Text("flatMap")
-                    Spacer()
-                }
-                
-                HStack{
-                    Button("flatMap"){ callFlatMap() }.padding(.trailing, 5)
-                    Text("Value : \(flatMapValue)").padding(.trailing, 5)
-                    Text("Sate : \(flatMapState)").padding(.trailing, 5)
-                    Spacer()
-                }
-            }
-            
-            VStack{
-                HStack{
-                    Text("Rx의 take와 동일")
-                    Spacer()
-                }
-                
-                HStack{
-                    Button("prefix"){ callPrefix() }.padding(.trailing, 5)
-                    Text("Value : \(prefixValue)").padding(.trailing, 5)
-                    Text("Sate : \(prefixState)").padding(.trailing, 5)
-                    Spacer()
-                }
-            }
-            
-            VStack{
-                HStack{
-                    Text("Rx의 zip")
-                    Spacer()
-                }
-                
-                HStack{
-                    Button("zip"){ callZip() }.padding(.trailing, 5)
-                    Text("Value : \(zipValue)").padding(.trailing, 5)
-                    Text("Sate : \(zipState)").padding(.trailing, 5)
-                    Spacer()
-                }
-            }
-            
-            
-            VStack{
-                HStack{
-                    Text("Rx의 onErrorReturn")
-                    Spacer()
-                }
-                
-                HStack{
-                    Button("tryCatch"){ callTryCatch() }.padding(.trailing, 5)
-                    Text("Value : \(tryCatchValue)").padding(.trailing, 5)
-                    Text("Sate : \(tryCatchState)").padding(.trailing, 5)
-                    Spacer()
-                }
-            }
-            
         }
     
-        
     }
     
-    
-    func callFuture(){
-        let cancellable = generateAsyncRandomNumberFromFuture()
-            .sink(receiveCompletion: { result in
-                futureState = "\(result)"
-            }, receiveValue: { number in
-                futureValue = "\(number)"
-            })
-    }
+
 
     func generateAsyncRandomNumberFromFuture() -> Future<Int, Never>{
         return Future() { promise in
@@ -276,6 +307,59 @@ struct ContentView: View {
             } receiveValue: { value in
                 tryCatchValue = "\(tryCatchValue)_\(value)"
             }
+    }
+    
+    let currentSubject = CurrentValueSubject<Int, Never>(1)
+    func callCurrentValueSubject(){
+        
+        currentSubject.send(sendValue)
+        sendValue += 1
+        
+        let cancellable = currentSubject.sink { result in
+            switch result {
+            case .finished:
+                currentSubjectState = "finished"
+            case .failure(let never):
+                currentSubjectState = "실패"
+            }
+        } receiveValue: { value in
+            currentSubjectValue = value
+        }
+
+    }
+    
+    func callPassThroughSubject(){
+        
+        let passThroughSubject = PassthroughSubject<Int, Never>()
+        
+        let cancellable = passThroughSubject.sink { result in
+            switch result {
+            case .finished:
+                passThroughState = "finished"
+            case .failure(let never):
+                passThroughState = "실패"
+            }
+        } receiveValue: { value in
+            passThroughValue = value
+        }
+        
+        //send 시점에 subscriver가 없으면 drop 한다.
+        passThroughSubject.send(sendValue2)
+        sendValue2 += 1
+    }
+    
+    func callSubjectZip(){
+//        let firstSubject = PassthroughSubject<Int, Never>()
+//        let secondSubject = PassthroughSubject<String, Never>()
+        
+        let runLoop = RunLoop.main
+        
+        runLoop.schedule(after: runLoop.now,
+                         interval: .seconds(1),
+                         tolerance: .milliseconds(100)) {
+            print("Timer fired")
+        }//.store
+        
     }
 }
 
