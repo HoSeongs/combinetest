@@ -8,6 +8,7 @@
 import SwiftUI
 import Combine
 
+
 enum SimpleError: Error { case error }
 
 struct ContentView: View {
@@ -40,7 +41,16 @@ struct ContentView: View {
     
     @State private var subjectZipValue = ""
     @State private var subjectZipState = ""
+    
+    var operationQueue = OperationQueue()
+    var IMG_URL = "https://picsum.photos/400/400/?random"
+    
+    init(){
+        operationQueue.name = "Thread : (Qos: Default)"
+        operationQueue.qualityOfService = .default
+    }
 
+    //let cancelBag = CancelBag()
     
     var body: some View {
         List{
@@ -177,6 +187,20 @@ struct ContentView: View {
                     HStack{
                         Button("Subject zip(int subejct, str subject)"){ callSubjectZip() }.padding(.trailing, 5)
                         Text("Subscription : \(subjectZipValue)").padding(.trailing, 5)
+                        Text("State : \(subjectZipState)").padding(.trailing, 5)
+                        Spacer()
+                    }
+                }
+                
+                VStack{
+                    HStack{
+                        Text("Rx의 oberveOn()")
+                        Spacer()
+                    }
+                    
+                    HStack{
+                        Button("recieveOn"){ callRecieveOn() }.padding(.trailing, 5)
+                        //Image(uiImage: <#T##UIImage#>)
                         Text("State : \(subjectZipState)").padding(.trailing, 5)
                         Spacer()
                     }
@@ -360,6 +384,22 @@ struct ContentView: View {
             print("Timer fired")
         }//.store
         
+    }
+    
+    func currentThreadName() -> String{
+        return OperationQueue.current?.name ?? "Unknown Thread"
+    }
+    
+    func callRecieveOn(){
+        Just(IMG_URL)
+            .handleEvents(receiveOutput: { _ in print("[1]: \(currentThreadName())")})
+            .map{ URL(string: $0)! }
+            .tryMap{ try Data(contentsOf: $0)}
+            .map{ UIImage(data: $0)}
+            .handleEvents(receiveOutput: { _ in print("[2]: \(currentThreadName())")})
+            .replaceError(with: nil)
+            //.assign(to: \.image, on: imageView)
+            //.cancel(with: cancelBag)
     }
 }
 
