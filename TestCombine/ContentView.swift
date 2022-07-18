@@ -13,6 +13,8 @@ enum SimpleError: Error { case error }
 
 struct ContentView: View {
     
+    @State private var cancelables = Set<AnyCancellable>()
+    
     @State private var justValue = ""
     @State private var justState = ""
     
@@ -44,13 +46,13 @@ struct ContentView: View {
     
     var operationQueue = OperationQueue()
     var IMG_URL = "https://picsum.photos/400/400/?random"
+    @State private var downImage : UIImage = UIImage()
+    @State private var receiveState = ""
     
     init(){
         operationQueue.name = "Thread : (Qos: Default)"
         operationQueue.qualityOfService = .default
     }
-
-    //let cancelBag = CancelBag()
     
     var body: some View {
         List{
@@ -194,15 +196,22 @@ struct ContentView: View {
                 
                 VStack{
                     HStack{
-                        Text("Rx의 oberveOn()")
+                        Text("Rx의 oberveOn(), subscribeOn()")
                         Spacer()
                     }
                     
                     HStack{
                         Button("recieveOn"){ callRecieveOn() }.padding(.trailing, 5)
-                        //Image(uiImage: <#T##UIImage#>)
-                        Text("State : \(subjectZipState)").padding(.trailing, 5)
+                        Image(uiImage: downImage)
+                            .resizable()
+                            .frame(width: 50, height: 50)
+                            .aspectRatio(contentMode: .fit)
                         Spacer()
+                    }
+                    VStack(alignment: .leading){
+                        Text("State : \(receiveState)")
+                            .padding(.trailing, 5)
+                            .lineLimit(10)
                     }
                 }
                 
@@ -391,15 +400,29 @@ struct ContentView: View {
     }
     
     func callRecieveOn(){
+        receiveState = ""
         Just(IMG_URL)
-            .handleEvents(receiveOutput: { _ in print("[1]: \(currentThreadName())")})
+            .subscribe(on: operationQueue)
+            .handleEvents(receiveOutput: { _ in receiveState = "\(receiveState)_\n\(currentThreadName())" })
             .map{ URL(string: $0)! }
             .tryMap{ try Data(contentsOf: $0)}
             .map{ UIImage(data: $0)}
-            .handleEvents(receiveOutput: { _ in print("[2]: \(currentThreadName())")})
             .replaceError(with: nil)
-            //.assign(to: \.image, on: imageView)
-            //.cancel(with: cancelBag)
+            .receive(on: RunLoop.main)
+            .handleEvents(receiveOutput: { _ in receiveState = "\(receiveState)_\n\(currentThreadName())" })
+            .sink { result in
+                switch result {
+                case .failure(let never):
+                    receiveState = "\(receiveState)_fail"
+                case .finished:
+                    receiveState = "\(receiveState)_finished"
+                }
+            } receiveValue: { value in
+                guard let image = value else {
+                    return
+                }
+                downImage = image
+            }.store(in: &cancelables)
     }
 }
 
